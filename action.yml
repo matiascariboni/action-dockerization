@@ -1,0 +1,38 @@
+name: Dockerization
+description: Composite action to configure Docker, ports, networks and build
+inputs:
+  IMAGE_ARCH:
+    required: true
+    description: Target platforms for Docker buildx (e.g., linux/amd64)
+runs:
+  using: "composite"
+  steps:
+    - name: Docker config
+      id: docker_config
+      shell: bash
+      run: scripts/docker_config.sh
+
+    - name: Ports formatting from Dockerfile
+      id: port_formatter
+      shell: bash
+      run: scripts/port_formatter.sh
+
+    - name: Network formatting from Dockerfile
+      id: net_formatter
+      shell: bash
+      run: scripts/net_formatter.sh
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: ${{ steps.docker_config.outputs.DOCKERFILE_PATH }}
+        platforms: ${{ inputs.IMAGE_ARCH }}
+        tags: ${{ steps.docker_config.outputs.IMAGE_NAME }}:${{ steps.docker_config.outputs.DOCKER_TAG }}
+        outputs: type=docker,dest=${{ steps.docker_config.outputs.IMAGE_NAME }}.tar
