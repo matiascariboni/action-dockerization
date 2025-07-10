@@ -26,17 +26,17 @@ runs:
     - name: Docker config
       id: docker_config
       shell: bash
-      run: scripts/docker_config.sh
+      run: ./scripts/docker_config.sh
 
     - name: Ports formatting from Dockerfile
       id: port_formatter
       shell: bash
-      run: scripts/port_formatter.sh
+      run: ./scripts/port_formatter.sh
 
     - name: Network formatting from Dockerfile
       id: net_formatter
       shell: bash
-      run: scripts/net_formatter.sh
+      run: ./scripts/net_formatter.sh
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
