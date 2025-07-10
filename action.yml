@@ -23,6 +23,11 @@ outputs:
 runs:
   using: "composite"
   steps:
+
+    - name: Debug
+      shell: bash
+      run: ls -al -R
+
     - name: Docker config
       id: docker_config
       shell: bash
