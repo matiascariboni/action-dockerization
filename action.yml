@@ -45,6 +45,8 @@ runs:
       id: net_formatter
       shell: bash
       run: ${{ github.action_path }}/scripts/net_formatter.sh
+      env:
+        DOCKERFILE_PATH: ${{ steps.docker_config.outputs.DOCKERFILE_PATH }}
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3

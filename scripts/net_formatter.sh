@@ -8,7 +8,7 @@ while IFS= read -r line || [ -n "$line" ]; do
     if [[ $line =~ ^#\ NETWORK\ (.+) ]]; then
         net_array+=("$(echo "${BASH_REMATCH[1]}" | tr -d ' ' | tr '[:upper:]' '[:lower:]')")
     fi
-done < "${{ steps.docker_config.outputs.DOCKERFILE_PATH }}"
+done < "$DOCKERFILE_PATH"
 
 if [[ ${#net_array[@]} -gt 0 ]]; then
     COMPOSE_NETWORKS="$(IFS=,; echo "${net_array[*]}")"
