@@ -1,45 +1,98 @@
-# 🐳 Dockerization
+# 🚀 Dockerization GitHub Action
 
-This GitHub Composite Action automates Docker-related configuration steps in your CI/CD workflows. It is designed to simplify and standardize Docker image tagging, Dockerfile selection, port and network parsing, and image building using `buildx`.
-
-## 🔧 Features
-
-- ✅ Automatically determines the correct Docker tag from Git branches or Git tags
-- ✅ Dynamically selects the appropriate `Dockerfile` based on branch name
-- ✅ Extracts port mappings and network configuration hints from comments inside `Dockerfile`
-- ✅ Uses `docker/setup-qemu-action` and `docker/setup-buildx-action` to support cross-platform builds
-- ✅ Builds Docker image using `docker/build-push-action`
-- ✅ Outputs useful deployment metadata like image name, Docker tag, Dockerfile path, and more
+This composite GitHub Action simplifies and automates the Dockerization process for your CI/CD workflows. It dynamically determines the Docker image tag, selects the appropriate Dockerfile, formats ports and networks for Docker Compose, and builds your image using Buildx with support for multiple architectures.
 
 ---
 
-## 📦 Outputs
+## 🔧 What It Does
 
-| Output              | Description                                                                 |
-|---------------------|-----------------------------------------------------------------------------|
-| `DOCKER_TAG`        | Docker tag derived from the Git tag or short commit hash                    |
-| `DOCKERFILE_PATH`   | Full path to the Dockerfile used (e.g., `./Dockerfile.master`)              |
-| `COMPOSE_FILE_NAME` | Docker Compose filename derived from repo and branch (e.g., `app_master.yml`) |
-| `IMAGE_NAME`        | Final Docker image name, e.g., `app_master`                                 |
-| `COMPOSE_PORTS`     | Port mappings in `Docker Compose` format, e.g., `80:3000,443:8443`          |
-| `COMPOSE_NETWORKS`  | Networks extracted from `# NETWORK ...` comments in the Dockerfile          |
+This action performs the following tasks:
+
+1. **Detects whether the push is a tag or a branch**\
+   → If it's a tag: uses the tag name as Docker tag.\
+   → If it's a branch: uses the short commit hash as Docker tag.
+
+2. **Resolves the appropriate Dockerfile** based on branch name:
+
+   - If a file named `Dockerfile.<branch>` exists (e.g., `Dockerfile.dev`), it uses that.
+   - Otherwise, it falls back to the default `Dockerfile`.
+
+3. **Generates the Docker Compose file name** using the repository name and branch.
+
+4. **Extracts and formats ports** from the Dockerfile for Compose using custom comment syntax like:
+
+   ```Dockerfile
+   EXPOSE 3000
+   # TO 80
+   ```
+
+   ➤ This will map `3000` to `80` in Compose.
+
+5. **Parses networks** from comments like:
+
+   ```Dockerfile
+   # NETWORK my-network
+   ```
+
+6. **Builds the Docker image** with `buildx`, using the correct tag, Dockerfile, and platform(s).
 
 ---
 
-## 🚀 How to Use
+## 📁 Required Files in Your Repository
 
-### 1. Add the Action to Your Workflow
+Your repository must contain:
+
+- ✅ A `Dockerfile` (default) **or** a `Dockerfile.<branch_name>` matching the current Git ref.
+- ✅ A valid Git structure to differentiate between branches and tags.
+- 🔄 You don't need to include any Compose file — the filename is only generated and exposed as output in case it's useful in later workflow steps (e.g., for deployment scripts).
+
+---
+
+## 📦 Inputs
+
+| Name         | Description                                             | Required |
+| ------------ | ------------------------------------------------------- | -------- |
+| `IMAGE_ARCH` | Platform target for Docker Buildx (e.g., `linux/amd64`) | ✅ Yes    |
+
+---
+
+## 📤 Outputs
+
+| Output name         | Description                                      |
+| ------------------- | ------------------------------------------------ |
+| `DOCKER_TAG`        | Docker image tag used (from tag or commit hash)  |
+| `DOCKERFILE_PATH`   | Path to the Dockerfile used                      |
+| `COMPOSE_FILE_NAME` | Compose file name generated from repo and branch |
+| `IMAGE_NAME`        | Full image name in the format `<repo>_<branch>`  |
+| `COMPOSE_PORTS`     | Comma-separated port mappings from Dockerfile    |
+| `COMPOSE_NETWORKS`  | Comma-separated list of network names            |
+
+---
+
+## 🧪 Example Usage
 
 ```yaml
 jobs:
-  dockerization:
+  dockerize:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Run Dockerization composite action
-        uses: matiascariboni/action-dockerization@v1.0.1
+      - name: Dockerization
         id: dockerization
+        uses: matiascariboni/action-dockerization@v1.0.1
         with:
           IMAGE_ARCH: linux/amd64
+
+      - name: Print results
+        run: |
+          echo "Image: ${{ steps.dockerization.outputs.IMAGE_NAME }}"
+          echo "Tag: ${{ steps.dockerization.outputs.DOCKER_TAG }}"
+          echo "Dockerfile: ${{ steps.dockerization.outputs.DOCKERFILE_PATH }}"
+          echo "Compose file: ${{ steps.dockerization.outputs.COMPOSE_FILE_NAME }}"
+```
+
+---
+
+❤️ Made with love by Matias Cariboni
+
