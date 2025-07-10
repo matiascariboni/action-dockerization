@@ -24,6 +24,11 @@ runs:
   using: "composite"
   steps:
 
+    - name: Make scripts executable
+      shell: bash
+      run: chmod +x ${{ github.action_path }}/scripts/*.sh
+
+
     - name: Docker config
       id: docker_config
       shell: bash
