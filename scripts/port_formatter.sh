@@ -15,7 +15,7 @@ while IFS= read -r line || [ -n "$line" ]; do
             ports_array+=("${to_port}:${last_exposed_port}")
         fi
     fi
-done < "${{ steps.docker_config.outputs.DOCKERFILE_PATH }}"
+done < "$DOCKERFILE_PATH"
 
 if [[ ${#ports_array[@]} -gt 0 ]]; then
     COMPOSE_PORTS="$(IFS=,; echo "${ports_array[*]}")"

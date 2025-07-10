@@ -38,6 +38,8 @@ runs:
       id: port_formatter
       shell: bash
       run: ${{ github.action_path }}/scripts/port_formatter.sh
+      env:
+        DOCKERFILE_PATH: ${{ steps.docker_config.outputs.DOCKERFILE_PATH }}
 
     - name: Network formatting from Dockerfile
       id: net_formatter
