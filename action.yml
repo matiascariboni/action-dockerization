@@ -7,18 +7,14 @@ inputs:
     description: Target platforms for Docker buildx (e.g., linux/amd64)
 
 outputs:
-  DOCKER_TAG:
-    value: ${{ steps.docker_config.outputs.DOCKER_TAG }}
-  DOCKERFILE_PATH:
-    value: ${{ steps.docker_config.outputs.DOCKERFILE_PATH }}
-  COMPOSE_FILE_NAME:
-    value: ${{ steps.docker_config.outputs.COMPOSE_FILE_NAME }}
   IMAGE_NAME:
     value: ${{ steps.docker_config.outputs.IMAGE_NAME }}
   COMPOSE_PORTS:
     value: ${{ steps.port_formatter.outputs.COMPOSE_PORTS }}
   COMPOSE_NETWORKS:
     value: ${{ steps.net_formatter.outputs.COMPOSE_NETWORKS }}
+  COMPOSE_FILE_NAME:
+    value: ${{ steps.docker_config.outputs.COMPOSE_FILE_NAME }}
 
 runs:
   using: "composite"
@@ -27,7 +23,6 @@ runs:
     - name: Make scripts executable
       shell: bash
       run: chmod +x ${{ github.action_path }}/scripts/*.sh
-
 
     - name: Docker config
       id: docker_config
