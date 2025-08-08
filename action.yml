@@ -5,6 +5,9 @@ inputs:
   IMAGE_ARCH:
     required: true
     description: Target platforms for Docker buildx (e.g., linux/amd64)
+  COMPOSE_NAME:
+    required: true
+    description: Prefix for the compose file name
 
 outputs:
   IMAGE_NAME:
