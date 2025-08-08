@@ -24,7 +24,8 @@ fi
 
 echo "DOCKERFILE_PATH=$DOCKERFILE_PATH" >> $GITHUB_OUTPUT
 
-COMPOSE_FILE_NAME=${{ env.COMPOSE_NAME }}"_$(echo "${{ github.ref_name }}" | tr '[:upper:]' '[:lower:]').yml"
+COMPOSE_FILE_NAME="${GITHUB_REPOSITORY#*/}_$(echo "${BRANCH_NAME}" | tr '[:upper:]' '[:lower:]').yml"
+COMPOSE_FILE_NAME=${COMPOSE_NAME}"_$(echo "${{ github.ref_name }}" | tr '[:upper:]' '[:lower:]').yml"
 echo "COMPOSE_FILE_NAME=$COMPOSE_FILE_NAME" >> $GITHUB_OUTPUT
 
 IMAGE_NAME="${GITHUB_REPOSITORY#*/}_${BRANCH_NAME}"

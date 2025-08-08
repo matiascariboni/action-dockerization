@@ -31,6 +31,8 @@ runs:
       id: docker_config
       shell: bash
       run: ${{ github.action_path }}/scripts/docker_config.sh
+      env:
+        COMPOSE_NAME: ${{ inputs.COMPOSE_NAME }}
 
     - name: Ports formatting from Dockerfile
       id: port_formatter
