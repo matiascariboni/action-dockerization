@@ -12,9 +12,7 @@ else
   echo "DOCKER_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 fi
 
-echo "Branch name is: $BRANCH_NAME"
-
-DOCKERFILE_PATH="./Dockerfile.$(echo "${BRANCH_NAME}" | tr '[:upper:]' '[:lower:]')"
+DOCKERFILE_PATH="./Dockerfile.$(echo "${ENV_NAME}" | tr '[:upper:]' '[:lower:]')"
 if [[ -f "$DOCKERFILE_PATH" ]]; then
   echo "Dockerfile found in: $DOCKERFILE_PATH"
 else
@@ -24,8 +22,8 @@ fi
 
 echo "DOCKERFILE_PATH=$DOCKERFILE_PATH" >> $GITHUB_OUTPUT
 
-COMPOSE_FILE_NAME=${COMPOSE_NAME}"_$(echo "${BRANCH_NAME}" | tr '[:upper:]' '[:lower:]').yml"
+COMPOSE_FILE_NAME=${COMPOSE_NAME}"_$(echo "${ENV_NAME}" | tr '[:upper:]' '[:lower:]').yml"
 echo "COMPOSE_FILE_NAME=$COMPOSE_FILE_NAME" >> $GITHUB_OUTPUT
 
-IMAGE_NAME="${GITHUB_REPOSITORY#*/}_${BRANCH_NAME}"
+IMAGE_NAME="${GITHUB_REPOSITORY#*/}_${ENV_NAME}"
 echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_OUTPUT

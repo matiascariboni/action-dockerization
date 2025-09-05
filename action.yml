@@ -8,6 +8,9 @@ inputs:
   COMPOSE_NAME:
     required: true
     description: Prefix for the compose file name
+  ENV_NAME:
+    required: true
+    description: Environment needed to catch the correct Dockerfile
 
 outputs:
   IMAGE_NAME:
@@ -33,6 +36,7 @@ runs:
       run: ${{ github.action_path }}/scripts/docker_config.sh
       env:
         COMPOSE_NAME: ${{ inputs.COMPOSE_NAME }}
+        ENV_NAME: ${{ inputs.ENV_NAME }}
 
     - name: Ports formatting from Dockerfile
       id: port_formatter
