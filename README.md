@@ -12,12 +12,12 @@ This action performs the following tasks:
    → If it's a tag: uses the tag name as Docker tag.\
    → If it's a branch: uses the short commit hash as Docker tag.
 
-2. **Resolves the appropriate Dockerfile** based on branch name:
+2. **Resolves the appropriate Dockerfile** based on environment name:
 
-   - If a file named `Dockerfile.<branch>` exists (e.g., `Dockerfile.dev`), it uses that.
+   - If a file named `Dockerfile.<environment>` exists (e.g., `Dockerfile.dev`), it uses that.
    - Otherwise, it falls back to the default `Dockerfile`.
 
-3. **Generates the Docker Compose file name** using the repository name and branch.
+3. **Generates the Docker Compose file name** using the repository name and environment.
 
 4. **Extracts and formats ports** from the Dockerfile for Compose using custom comment syntax like:
 
@@ -42,8 +42,8 @@ This action performs the following tasks:
 
 Your repository must contain:
 
-- ✅ A `Dockerfile` (default) **or** a `Dockerfile.<branch_name>` matching the current Git ref.
-- ✅ A valid Git structure to differentiate between branches and tags.
+- ✅ A `Dockerfile` (default) **or** a `Dockerfile.<env_name>` matching the current Git ref.
+- ✅ A valid Git structure to differentiate between environments and tags.
 - 🔄 You don't need to include any Compose file — the filename is only generated and exposed as output in case it's useful in later workflow steps (e.g., for deployment scripts).
 
 ---
@@ -62,8 +62,8 @@ Your repository must contain:
 | ------------------- | ------------------------------------------------ |
 | `DOCKER_TAG`        | Docker image tag used (from tag or commit hash)  |
 | `DOCKERFILE_PATH`   | Path to the Dockerfile used                      |
-| `COMPOSE_FILE_NAME` | Compose file name generated from repo and branch |
-| `IMAGE_NAME`        | Full image name in the format `<repo>_<branch>`  |
+| `COMPOSE_FILE_NAME` | Compose file name generated from repo and env |
+| `IMAGE_NAME`        | Full image name in the format `<repo>_<env>`  |
 | `COMPOSE_PORTS`     | Comma-separated port mappings from Dockerfile    |
 | `COMPOSE_NETWORKS`  | Comma-separated list of network names            |
 
