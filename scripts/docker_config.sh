@@ -12,11 +12,8 @@ else
   echo "DOCKER_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 fi
 
-echo ${ENV_NAME}
-echo $ENV_NAME
-
 DOCKERFILE_PATH="./Dockerfile.$(echo "${ENV_NAME}" | tr '[:upper:]' '[:lower:]')"
-echo $DOCKERFILE_PATH
+
 if [[ -f "$DOCKERFILE_PATH" ]]; then
   echo "Dockerfile found in: $DOCKERFILE_PATH"
 else
