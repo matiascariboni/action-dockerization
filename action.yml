@@ -19,6 +19,8 @@ outputs:
     value: ${{ steps.port_formatter.outputs.COMPOSE_PORTS }}
   COMPOSE_NETWORKS:
     value: ${{ steps.net_formatter.outputs.COMPOSE_NETWORKS }}
+  COMPOSE_VOLUMES:
+    value: ${{ steps.volume_formatter.outputs.COMPOSE_VOLUMES }}
   COMPOSE_FILE_NAME:
     value: ${{ steps.docker_config.outputs.COMPOSE_FILE_NAME }}
 
@@ -49,6 +51,13 @@ runs:
       id: net_formatter
       shell: bash
       run: ${{ github.action_path }}/scripts/net_formatter.sh
+      env:
+        DOCKERFILE_PATH: ${{ steps.docker_config.outputs.DOCKERFILE_PATH }}
+
+    - name: Volume formatting from Dockerfile
+      id: volume_formatter
+      shell: bash
+      run: ${{ github.action_path }}/scripts/volume_formatter.sh
       env:
         DOCKERFILE_PATH: ${{ steps.docker_config.outputs.DOCKERFILE_PATH }}
 
