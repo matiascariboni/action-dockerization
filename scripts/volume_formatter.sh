@@ -8,7 +8,7 @@ volume_array=()
 
 while IFS= read -r line || [ -n "$line" ]; do
     if [[ $line =~ ^#\ VOLUME\ (.+) ]]; then
-        volume_array+=("$(echo "${BASH_REMATCH[1]}" | tr -d ' '")
+        volume_array+=("$(echo "${BASH_REMATCH[1]}" | tr -d ' ')")
     fi
 done < "$DOCKERFILE_PATH"
 
