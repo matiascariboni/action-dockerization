@@ -1,6 +1,6 @@
 # 🚀 Dockerization GitHub Action
 
-This composite GitHub Action simplifies and automates the Dockerization process for your CI/CD workflows. It dynamically determines the Docker image tag, selects the appropriate Dockerfile, formats ports and networks for Docker Compose, and builds your image using Buildx with support for multiple architectures and layer caching.
+This composite GitHub Action simplifies and automates the Dockerization process for your CI/CD workflows. It dynamically determines the Docker image tag, selects the appropriate Dockerfile, formats ports and networks for Docker Compose, and builds your image using Buildx with support for multiple architectures and optional layer caching.
 
 ---
 
@@ -37,6 +37,8 @@ This action performs the following tasks:
 
 7. **Builds the Docker image** with `buildx`, using the correct tag, Dockerfile, platform(s), and **optional layer caching** for faster builds.
 
+8. **Provides caching recommendations** to help optimize your CI/CD pipeline.
+
 ---
 
 ## 📁 Required Files in Your Repository
@@ -51,13 +53,12 @@ Your repository must contain:
 
 ## 📦 Inputs
 
-| Name           | Description                                                                      | Required | Default |
-| -------------- | -------------------------------------------------------------------------------- | -------- | ------- |
-| `IMAGE_ARCH`   | Platform target for Docker Buildx (e.g., `linux/amd64`, `linux/arm64`)          | ✅ Yes    | -       |
-| `COMPOSE_NAME` | Prefix for the compose file name                                                 | ✅ Yes    | -       |
-| `ENV_NAME`     | Environment name used to determine the correct Dockerfile                        | ✅ Yes    | -       |
-| `CACHE_FROM`   | Cache source for Docker buildx (e.g., `type=local,src=/tmp/.buildx-cache`)      | ❌ No     | -       |
-| `CACHE_TO`     | Cache destination for Docker buildx (e.g., `type=local,dest=/tmp/.buildx-cache-new,mode=max`) | ❌ No     | -       |
+| Name           | Description                                                                      | Required | Default   |
+| -------------- | -------------------------------------------------------------------------------- | -------- | --------- |
+| `IMAGE_ARCH`   | Platform target for Docker Buildx (e.g., `linux/amd64`, `linux/arm64`)          | ✅ Yes    | -         |
+| `COMPOSE_NAME` | Prefix for the compose file name                                                 | ✅ Yes    | -         |
+| `ENV_NAME`     | Environment name used to determine the correct Dockerfile                        | ✅ Yes    | -         |
+| `CACHE`        | Enable Docker layer caching for faster builds (`'true'` or `'false'`)           | ❌ No     | `'false'` |
 
 ---
 
@@ -86,7 +87,7 @@ jobs:
 
       - name: Dockerization
         id: dockerization
-        uses: matiascariboni/action-dockerization@v1.0.4
+        uses: matiascariboni/action-dockerization@v1.0.5
         with:
           IMAGE_ARCH: linux/amd64
           COMPOSE_NAME: my-app
@@ -100,9 +101,7 @@ jobs:
           echo "Networks: ${{ steps.dockerization.outputs.COMPOSE_NETWORKS }}"
 ```
 
-### Advanced Usage (With Layer Caching)
-
-For faster builds, enable Docker layer caching by using GitHub Actions cache:
+### With Layer Caching (Recommended for Faster Builds)
 
 ```yaml
 jobs:
@@ -111,31 +110,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
       - name: Dockerization with cache
         id: dockerization
-        uses: matiascariboni/action-dockerization@v1.0.4
+        uses: matiascariboni/action-dockerization@v1.0.5
         with:
           IMAGE_ARCH: linux/arm64
           COMPOSE_NAME: my-app
           ENV_NAME: production
-          CACHE_FROM: type=local,src=/tmp/.buildx-cache
-          CACHE_TO: type=local,dest=/tmp/.buildx-cache-new,mode=max
-
-      - name: Move Docker cache
-        if: always()
-        run: |
-          if [ -d "/tmp/.buildx-cache-new" ]; then
-            rm -rf /tmp/.buildx-cache
-            mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-          fi
+          CACHE: 'true'
 
       - name: Print results
         run: |
@@ -146,11 +128,12 @@ jobs:
 
 ```yaml
 - name: Dockerization (multi-arch)
-  uses: matiascariboni/action-dockerization@v1.0.4
+  uses: matiascariboni/action-dockerization@v1.0.5
   with:
     IMAGE_ARCH: linux/amd64,linux/arm64
     COMPOSE_NAME: my-app
     ENV_NAME: production
+    CACHE: 'true'
 ```
 
 ---
@@ -186,9 +169,9 @@ This will create a volume mapping in Compose.
 
 ---
 
-## 🚀 Performance Benefits
+## 🚀 Performance Benefits with Caching
 
-Using the `CACHE_FROM` and `CACHE_TO` inputs can significantly reduce build times:
+Enabling the `CACHE` option can significantly reduce build times:
 
 - **Without cache**: Full rebuild on every push (~10-15 minutes for Node.js apps)
 - **With cache**: Only changed layers rebuild (~2-5 minutes for code changes)
@@ -206,6 +189,56 @@ Scenario 2: Dependency change
 ├─ Build layer:       ❌ Rebuilt (necessary)
 └─ Total time:        ~10 minutes
 ```
+
+### Cache Maintenance
+
+When using caching, it's recommended to set up a scheduled workflow to clean old caches periodically. This prevents cache accumulation and ensures fresh system packages.
+
+**Example cleanup workflow** (`.github/workflows/cache-cleanup.yml`):
+
+```yaml
+name: Monthly Cache Cleanup
+
+on:
+  schedule:
+    - cron: '0 3 1 * *'  # First day of each month at 3 AM UTC
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cleanup buildx caches
+        run: |
+          gh extension install actions/gh-actions-cache
+
+          cacheKeys=$(gh actions-cache list -R $REPO | cut -f 1)
+
+          for cacheKey in $cacheKeys; do
+            if [[ $cacheKey == *"buildx"* ]]; then
+              echo "Deleting cache: $cacheKey"
+              gh actions-cache delete $cacheKey -R $REPO --confirm
+            fi
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+```
+
+---
+
+## 📝 Tips and Best Practices
+
+1. **Enable caching for development environments** to speed up iteration cycles
+2. **Consider disabling cache for production deployments** if you need guaranteed fresh builds
+3. **Set up monthly cache cleanup** to prevent old caches from accumulating
+4. **Monitor cache hit rates** in your workflow logs to ensure caching is effective
+5. **Use environment-specific caches** (handled automatically via `ENV_NAME`)
 
 ---
 
