@@ -11,6 +11,12 @@ inputs:
   ENV_NAME:
     required: true
     description: Environment needed to catch the correct Dockerfile
+  CACHE_FROM:
+    required: false
+    description: Cache source for Docker buildx
+  CACHE_TO:
+    required: false
+    description: Cache destination for Docker buildx
 
 outputs:
   IMAGE_NAME:
@@ -75,3 +81,5 @@ runs:
         platforms: ${{ inputs.IMAGE_ARCH }}
         tags: ${{ steps.docker_config.outputs.IMAGE_NAME }}:${{ steps.docker_config.outputs.DOCKER_TAG }}
         outputs: type=docker,dest=${{ steps.docker_config.outputs.IMAGE_NAME }}.tar
+        cache-from: ${{ inputs.CACHE_FROM }}
+        cache-to: ${{ inputs.CACHE_TO }}
