@@ -9,8 +9,9 @@ inputs:
     required: true
     description: Prefix for the compose file name
   ENV_NAME:
-    required: true
+    required: false
     description: Environment needed to catch the correct Dockerfile
+    default: ''
   CACHE:
     required: false
     description: Enable Docker layer caching for faster builds

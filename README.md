@@ -53,12 +53,12 @@ Your repository must contain:
 
 ## 📦 Inputs
 
-| Name           | Description                                                                      | Required | Default   |
-| -------------- | -------------------------------------------------------------------------------- | -------- | --------- |
-| `IMAGE_ARCH`   | Platform target for Docker Buildx (e.g., `linux/amd64`, `linux/arm64`)          | ✅ Yes    | -         |
-| `COMPOSE_NAME` | Prefix for the compose file name                                                 | ✅ Yes    | -         |
-| `ENV_NAME`     | Environment name used to determine the correct Dockerfile                        | ✅ Yes    | -         |
-| `CACHE`        | Enable Docker layer caching for faster builds (`'true'` or `'false'`)           | ❌ No     | `'false'` |
+| Name           | Description                                                                     | Required | Default                |
+| -------------- | ------------------------------------------------------------------------------- | -------- | ---------------------- |
+| `IMAGE_ARCH`   | Platform target for Docker Buildx (e.g., `linux/amd64`, `linux/arm64`)          | ✅ Yes   | -                      |
+| `COMPOSE_NAME` | Prefix for the compose file name                                                | ✅ Yes   | -                      |
+| `ENV_NAME`     | Environment name used to determine the correct Dockerfile                       | ❌ No    |`${{ github.ref_name }}`|
+| `CACHE`        | Enable Docker layer caching for faster builds (`'true'` or `'false'`)           | ❌ No    | `'false'`              |
 
 ---
 

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.6] - 2024-10-16
+
+### Changed
+- `ENV_NAME` isn't required anymore. Branch name will be the default value on that case.
+
 ## [1.0.5] - 2024-10-02
 
 ### Added
@@ -126,7 +131,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-architecture build support with buildx
 - QEMU setup for cross-platform builds
 
-[Unreleased]: https://github.com/matiascariboni/action-dockerization/compare/v1.0.5...HEAD
+[Unreleased]: https://github.com/matiascariboni/action-dockerization/compare/v1.0.6...HEAD
+[1.0.6]: https://github.com/matiascariboni/action-dockerization/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/matiascariboni/action-dockerization/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/matiascariboni/action-dockerization/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/matiascariboni/action-dockerization/compare/v1.0.2...v1.0.3
