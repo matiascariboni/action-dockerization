@@ -87,7 +87,7 @@ jobs:
 
       - name: Dockerization
         id: dockerization
-        uses: matiascariboni/action-dockerization@v1.0.5
+        uses: matiascariboni/action-dockerization@v1.0.7
         with:
           IMAGE_ARCH: linux/amd64
           COMPOSE_NAME: my-app
@@ -112,7 +112,7 @@ jobs:
 
       - name: Dockerization with cache
         id: dockerization
-        uses: matiascariboni/action-dockerization@v1.0.5
+        uses: matiascariboni/action-dockerization@v1.0.7
         with:
           IMAGE_ARCH: linux/arm64
           COMPOSE_NAME: my-app
@@ -128,7 +128,7 @@ jobs:
 
 ```yaml
 - name: Dockerization (multi-arch)
-  uses: matiascariboni/action-dockerization@v1.0.5
+  uses: matiascariboni/action-dockerization@v1.0.7
   with:
     IMAGE_ARCH: linux/amd64,linux/arm64
     COMPOSE_NAME: my-app
@@ -228,6 +228,45 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
+```
+
+---
+
+## 📊 Build Summary
+
+After each build, the action provides a comprehensive summary including:
+
+- ✅ Build status and validation
+- 📦 Image file size (human-readable and bytes)
+- 🔧 All configuration outputs (ports, networks, volumes)
+- 💾 Available disk space after build
+- ⚡ Cache status and recommendations (when caching is enabled)
+
+This information is crucial for:
+- Troubleshooting deployment issues
+- Monitoring image size growth over time
+- Verifying configuration before deployment
+- Ensuring sufficient disk space on target servers
+
+**Example output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 BUILD SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Docker image built successfully
+
+📊 Image Details:
+   Name: my-app_production.tar
+   Size: 450M (471859200 bytes)
+   Tag: v1.2.3
+
+🔧 Configuration Outputs:
+   IMAGE_NAME: my-app_production
+   COMPOSE_FILE_NAME: my-app_production.yml
+   COMPOSE_PORTS: 80:3000
+   COMPOSE_NETWORKS: my-network
+   COMPOSE_VOLUMES: ./data:/app/data
 ```
 
 ---

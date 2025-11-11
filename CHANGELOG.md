@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.7] - 2024-11-11
+
+### Added
+- Build summary step displaying comprehensive build information
+- Image size reporting (human-readable and bytes)
+- Disk space availability check after build
+- Configuration outputs display in build summary
+- Build status validation with error reporting
+
+### Changed
+- Enhanced build process visibility with detailed summary output
+- Improved troubleshooting capabilities with size and configuration data
+
 ## [1.0.6] - 2024-10-16
 
 ### Changed
@@ -131,7 +144,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-architecture build support with buildx
 - QEMU setup for cross-platform builds
 
-[Unreleased]: https://github.com/matiascariboni/action-dockerization/compare/v1.0.6...HEAD
+
+[Unreleased]: https://github.com/matiascariboni/action-dockerization/compare/v1.0.7...HEAD
+[1.0.7]: https://github.com/matiascariboni/action-dockerization/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/matiascariboni/action-dockerization/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/matiascariboni/action-dockerization/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/matiascariboni/action-dockerization/compare/v1.0.3...v1.0.4
