@@ -89,9 +89,6 @@ runs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-      with:
-        driver: docker
-        install: true
 
     - name: Cache Docker layers
       if: inputs.CACHE == 'true'
