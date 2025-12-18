@@ -14,7 +14,11 @@ inputs:
   CACHE:
     required: false
     description: Enable Docker layer caching for faster builds
-    default: 'false'
+    default: 'true'
+  USE_QEMU:
+    required: false
+    description: Enable QEMU for cross-platform builds (auto-detect if not set)
+    default: 'auto'
 
 outputs:
   IMAGE_NAME:
@@ -65,8 +69,19 @@ runs:
       env:
         DOCKERFILE_PATH: ${{ steps.docker_config.outputs.DOCKERFILE_PATH }}
 
+    - name: Detect cross-compilation requirement
+      id: detect_qemu
+      shell: bash
+      run: ${{ github.action_path }}/scripts/detect_qemu.sh
+      env:
+        IMAGE_ARCH: ${{ inputs.IMAGE_ARCH }}
+        USE_QEMU: ${{ inputs.USE_QEMU }}
+
     - name: Set up QEMU
+      if: steps.detect_qemu.outputs.needs_qemu == 'true'
       uses: docker/setup-qemu-action@v3
+      with:
+        platforms: ${{ inputs.IMAGE_ARCH }}
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -77,61 +92,16 @@ runs:
       uses: actions/cache@v4
       with:
         path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ inputs.ENV_NAME }}-${{ github.sha }}
+        key: ${{ runner.os }}-buildx-${{ steps.detect_qemu.outputs.runner_arch }}-${{ inputs.ENV_NAME }}-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-buildx-${{ inputs.ENV_NAME }}-
+          ${{ runner.os }}-buildx-${{ steps.detect_qemu.outputs.runner_arch }}-${{ inputs.ENV_NAME }}-
+          ${{ runner.os }}-buildx-${{ steps.detect_qemu.outputs.runner_arch }}-
           ${{ runner.os }}-buildx-
 
     - name: Cache status and recommendations
       if: always()
       shell: bash
-      run: |
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "🗂️  DOCKER LAYER CACHE - STATUS & RECOMMENDATIONS"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo ""
-
-        if [ "${{ inputs.CACHE }}" == "true" ]; then
-          echo "✅ Docker layer caching is ENABLED"
-          echo ""
-
-          # Check cache status
-          if [ "${{ steps.cache-docker.outputs.cache-hit }}" == "true" ]; then
-            echo "::notice::🎯 Cache Status: EXACT MATCH FOUND"
-            echo "   Source: Current commit cache"
-            echo "   Result: Maximum speed - all layers will be reused"
-          elif [ -d "/tmp/.buildx-cache" ] && [ "$(ls -A /tmp/.buildx-cache 2>/dev/null)" ]; then
-            CACHE_SIZE=$(du -sh /tmp/.buildx-cache 2>/dev/null | cut -f1 || echo "unknown")
-            echo "::notice::♻️  Cache Status: RESTORED from previous build"
-            echo "   Size: $CACHE_SIZE"
-            echo "   Result: Unchanged layers will be reused - significant speedup expected"
-          else
-            echo "::notice::🆕 Cache Status: NOT FOUND (fresh build)"
-            echo "   Result: This build will create cache for future runs"
-          fi
-
-          echo ""
-          echo "📍 Cache location: /tmp/.buildx-cache"
-          echo ""
-          echo "💡 Recommendation: Set up a scheduled workflow to clean old caches periodically."
-          echo "   This prevents cache accumulation and ensures fresh system packages."
-          echo "   See documentation for cleanup workflow example."
-        else
-          echo "::notice::ℹ️  Docker layer caching is DISABLED"
-          echo ""
-          echo "💡 Consider enabling cache for faster builds!"
-          echo ""
-          echo "To enable, add this to your workflow:"
-          echo "   CACHE: 'true'"
-          echo ""
-          echo "Benefits:"
-          echo "   • 5-7 minutes faster builds (on average)"
-          echo "   • Only changed layers are rebuilt"
-          echo "   • Significant CI/CD pipeline time savings"
-        fi
-
-        echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      run: ${{ github.action_path }}/scripts/cache_status.sh
 
     - name: Build Docker image (with cache)
       if: inputs.CACHE == 'true'
@@ -158,40 +128,18 @@ runs:
     - name: Build summary
       if: always()
       shell: bash
-      run: |
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "📦 BUILD SUMMARY"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo ""
-
-        IMAGE_FILE="${{ steps.docker_config.outputs.IMAGE_NAME }}.tar"
-
-        if [ -f "$IMAGE_FILE" ]; then
-          IMAGE_SIZE=$(du -h "$IMAGE_FILE" | cut -f1)
-          IMAGE_SIZE_BYTES=$(stat -f%z "$IMAGE_FILE" 2>/dev/null || stat -c%s "$IMAGE_FILE" 2>/dev/null)
-          echo "✅ Docker image built successfully"
-          echo ""
-          echo "📊 Image Details:"
-          echo "   Name: $IMAGE_FILE"
-          echo "   Size: $IMAGE_SIZE ($IMAGE_SIZE_BYTES bytes)"
-          echo "   Tag: ${{ steps.docker_config.outputs.DOCKER_TAG }}"
-        else
-          echo "::error::❌ Docker image file not found: $IMAGE_FILE"
-          exit 1
-        fi
-
-        echo ""
-        echo "🔧 Configuration Outputs:"
-        echo "   IMAGE_NAME: ${{ steps.docker_config.outputs.IMAGE_NAME }}"
-        echo "   COMPOSE_FILE_NAME: ${{ steps.docker_config.outputs.COMPOSE_FILE_NAME }}"
-        echo "   COMPOSE_PORTS: ${{ steps.port_formatter.outputs.COMPOSE_PORTS }}"
-        echo "   COMPOSE_NETWORKS: ${{ steps.net_formatter.outputs.COMPOSE_NETWORKS }}"
-        echo "   COMPOSE_VOLUMES: ${{ steps.volume_formatter.outputs.COMPOSE_VOLUMES }}"
-        echo ""
-        echo "💾 Disk Space After Build:"
-        df -h . | tail -1 | awk '{printf "   Available: %s / %s (%s used)\n", $4, $2, $5}'
-        echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      run: ${{ github.action_path }}/scripts/build_summary.sh
+      env:
+        IMAGE_NAME: ${{ steps.docker_config.outputs.IMAGE_NAME }}
+        DOCKER_TAG: ${{ steps.docker_config.outputs.DOCKER_TAG }}
+        COMPOSE_FILE_NAME: ${{ steps.docker_config.outputs.COMPOSE_FILE_NAME }}
+        COMPOSE_PORTS: ${{ steps.port_formatter.outputs.COMPOSE_PORTS }}
+        COMPOSE_NETWORKS: ${{ steps.net_formatter.outputs.COMPOSE_NETWORKS }}
+        COMPOSE_VOLUMES: ${{ steps.volume_formatter.outputs.COMPOSE_VOLUMES }}
+        IMAGE_ARCH: ${{ inputs.IMAGE_ARCH }}
+        CACHE_ENABLED: ${{ inputs.CACHE }}
+        NEEDS_QEMU: ${{ steps.detect_qemu.outputs.needs_qemu }}
+        RUNNER_ARCH: ${{ steps.detect_qemu.outputs.runner_arch }}
 
     - name: Move Docker cache
       if: always() && inputs.CACHE == 'true'
