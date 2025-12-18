@@ -6,12 +6,12 @@ echo "🗂️  DOCKER LAYER CACHE - STATUS & RECOMMENDATIONS"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-if [ "${{ inputs.CACHE }}" == "true" ]; then
+if [ "$CACHE_ENABLED" = "true" ]; then
   echo "✅ Docker layer caching is ENABLED"
   echo ""
-
+  
   # Check cache status
-  if [ "${{ steps.cache-docker.outputs.cache-hit }}" == "true" ]; then
+  if [ "$CACHE_HIT" = "true" ]; then
     echo "::notice::🎯 Cache Status: EXACT MATCH FOUND"
     echo "   Source: Current commit cache"
     echo "   Result: Maximum speed - all layers will be reused"
@@ -24,7 +24,7 @@ if [ "${{ inputs.CACHE }}" == "true" ]; then
     echo "::notice::🆕 Cache Status: NOT FOUND (fresh build)"
     echo "   Result: This build will create cache for future runs"
   fi
-
+  
   echo ""
   echo "📍 Cache location: /tmp/.buildx-cache"
   echo ""

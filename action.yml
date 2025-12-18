@@ -102,6 +102,9 @@ runs:
       if: always()
       shell: bash
       run: ${{ github.action_path }}/scripts/cache_status.sh
+      env:
+        CACHE_ENABLED: ${{ inputs.CACHE }}
+        CACHE_HIT: ${{ steps.cache-docker.outputs.cache-hit }}
 
     - name: Build Docker image (with cache)
       if: inputs.CACHE == 'true'

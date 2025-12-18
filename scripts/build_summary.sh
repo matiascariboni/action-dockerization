@@ -7,7 +7,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # Verificar imagen construida
-IMAGE_FILE="${{ steps.docker_config.outputs.IMAGE_NAME }}.tar"
+IMAGE_FILE="${IMAGE_NAME}.tar"
 if [ -f "$IMAGE_FILE" ]; then
   IMAGE_SIZE=$(du -h "$IMAGE_FILE" | cut -f1)
   IMAGE_SIZE_BYTES=$(stat -f%z "$IMAGE_FILE" 2>/dev/null || stat -c%s "$IMAGE_FILE" 2>/dev/null)
@@ -16,8 +16,8 @@ if [ -f "$IMAGE_FILE" ]; then
   echo "📊 Image Details:"
   echo "   Name: $IMAGE_FILE"
   echo "   Size: $IMAGE_SIZE ($IMAGE_SIZE_BYTES bytes)"
-  echo "   Tag: ${{ steps.docker_config.outputs.DOCKER_TAG }}"
-  echo "   Platform: ${{ inputs.IMAGE_ARCH }}"
+  echo "   Tag: $DOCKER_TAG"
+  echo "   Platform: $IMAGE_ARCH"
 else
   echo "::error::❌ Docker image file not found: $IMAGE_FILE"
   exit 1
@@ -25,18 +25,14 @@ fi
 
 echo ""
 echo "🏗️  Build Configuration:"
-RUNNER_ARCH=$(uname -m)
-TARGET_ARCH="${{ inputs.IMAGE_ARCH }}"
-QEMU_USED="${{ steps.detect_qemu.outputs.needs_qemu }}"
-
 echo "   Runner Architecture: $RUNNER_ARCH"
-echo "   Target Platform: $TARGET_ARCH"
+echo "   Target Platform: $IMAGE_ARCH"
 
 # Mostrar información de compilación
-if [ "$QEMU_USED" = "false" ]; then
+if [ "$NEEDS_QEMU" = "false" ]; then
   echo "   Build Type: 🚀 Native (optimized)"
   echo "   QEMU Emulation: No"
-elif [ "$QEMU_USED" = "true" ]; then
+elif [ "$NEEDS_QEMU" = "true" ]; then
   echo "   Build Type: ⚠️  Cross-compilation"
   echo "   QEMU Emulation: Yes"
 else
@@ -45,10 +41,10 @@ else
 fi
 
 # Información de cache
-if [ "${{ inputs.CACHE }}" = "true" ]; then
+if [ "$CACHE_ENABLED" = "true" ]; then
   echo "   Docker Cache: Enabled ✅"
   if [ -d "/tmp/.buildx-cache" ]; then
-    CACHE_SIZE=$(du -sh /tmp/.buildx-cache 2>/dev/null | cut -f1)
+    CACHE_SIZE=$(du -sh /tmp/.buildx-cache 2>/dev/null | cut -f1 || echo "Unknown")
     echo "   Cache Size: $CACHE_SIZE"
   fi
 else
@@ -57,11 +53,11 @@ fi
 
 echo ""
 echo "🔧 Compose Configuration:"
-echo "   IMAGE_NAME: ${{ steps.docker_config.outputs.IMAGE_NAME }}"
-echo "   COMPOSE_FILE_NAME: ${{ steps.docker_config.outputs.COMPOSE_FILE_NAME }}"
-echo "   COMPOSE_PORTS: ${{ steps.port_formatter.outputs.COMPOSE_PORTS }}"
-echo "   COMPOSE_NETWORKS: ${{ steps.net_formatter.outputs.COMPOSE_NETWORKS }}"
-echo "   COMPOSE_VOLUMES: ${{ steps.volume_formatter.outputs.COMPOSE_VOLUMES }}"
+echo "   IMAGE_NAME: $IMAGE_NAME"
+echo "   COMPOSE_FILE_NAME: $COMPOSE_FILE_NAME"
+echo "   COMPOSE_PORTS: $COMPOSE_PORTS"
+echo "   COMPOSE_NETWORKS: $COMPOSE_NETWORKS"
+[ -n "$COMPOSE_VOLUMES" ] && echo "   COMPOSE_VOLUMES: $COMPOSE_VOLUMES"
 
 echo ""
 echo "💾 Disk Space After Build:"
