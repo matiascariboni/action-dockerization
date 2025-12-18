@@ -40,6 +40,10 @@ runs:
       shell: bash
       run: chmod +x ${{ github.action_path }}/scripts/*.sh
 
+    - name: Ensure Docker is installed
+      shell: bash
+      run: ${{ github.action_path }}/scripts/check_docker.sh
+
     - name: Docker config
       id: docker_config
       shell: bash
@@ -87,6 +91,7 @@ runs:
       uses: docker/setup-buildx-action@v3
       with:
         driver: docker
+        install: true
 
     - name: Cache Docker layers
       if: inputs.CACHE == 'true'
